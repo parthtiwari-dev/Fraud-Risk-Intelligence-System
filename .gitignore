@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+
+# Ignore the specific large data file
+data/raw/creditcard.csv
+
 # C extensions
 *.so
 
