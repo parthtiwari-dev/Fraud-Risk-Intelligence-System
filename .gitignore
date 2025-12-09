@@ -6,6 +6,9 @@ __pycache__/
 
 # Ignore the specific large data file
 data/raw/creditcard.csv
+data/processed/test.csv
+data/processed/train.csv
+
 
 # C extensions
 *.so
