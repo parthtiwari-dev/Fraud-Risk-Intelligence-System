@@ -8,10 +8,7 @@ from joblib import load
 import torch
 import torch.nn as nn
 
-
-# ============================================================
 # Paths
-# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,16 +22,12 @@ IFOREST_FEATURES_PATH = MODEL_DIR / "iforest_features.json"
 AE_FEATURES_PATH = MODEL_DIR / "ae_features.json"
 
 
-# ============================================================
 # Global cache
-# ============================================================
-
 _MODELS = None
 
 
-# ============================================================
 # Autoencoder definition (needed for weight loading)
-# ============================================================
+
 
 class Autoencoder(nn.Module):
     def __init__(self, input_dim):
@@ -65,9 +58,9 @@ class Autoencoder(nn.Module):
         return self.decoder(z)
 
 
-# ============================================================
+
 # Helpers
-# ============================================================
+
 
 def _load_feature_list(path: Path, name: str) -> list:
     if not path.exists():
@@ -82,9 +75,8 @@ def _load_feature_list(path: Path, name: str) -> list:
     return data["features"]
 
 
-# ============================================================
 # Load all frozen artifacts
-# ============================================================
+
 
 def load_models():
     """
@@ -95,9 +87,8 @@ def load_models():
     if _MODELS is not None:
         return _MODELS
 
-    # ---------------------------
     # metrics.json
-    # ---------------------------
+   
     if not METRICS_PATH.exists():
         raise FileNotFoundError(f"metrics.json not found at {METRICS_PATH}")
 
@@ -107,9 +98,9 @@ def load_models():
     meta_features = metrics["meta_features"]
     final_threshold = metrics["final_threshold"]
 
-    # ---------------------------
+    
     # Feature contracts
-    # ---------------------------
+  
     xgb_features = _load_feature_list(XGB_FEATURES_PATH, "XGBoost")
     iforest_features = _load_feature_list(IFOREST_FEATURES_PATH, "IsolationForest")
     ae_features = _load_feature_list(AE_FEATURES_PATH, "Autoencoder")
@@ -120,9 +111,8 @@ def load_models():
         set(ae_features)
     )
 
-    # ---------------------------
+    
     # Models
-    # ---------------------------
     stacker = load(MODEL_DIR / "stacker.joblib")
     xgb = load(MODEL_DIR / "xgb.joblib")
     iforest = load(MODEL_DIR / "iforest.joblib")
@@ -135,9 +125,9 @@ def load_models():
     autoencoder.load_state_dict(ae_state)
     autoencoder.eval()
 
-    # ---------------------------
+   
     # Cache
-    # ---------------------------
+   
     _MODELS = {
         "stacker": stacker,
         "xgb": xgb,
@@ -154,9 +144,9 @@ def load_models():
     return _MODELS 
 
 
-# ============================================================
+
 # Input validation
-# ============================================================
+
 
 def validate_input(input_dict: dict) -> pd.DataFrame:
     """
@@ -182,9 +172,9 @@ def validate_input(input_dict: dict) -> pd.DataFrame:
     return pd.DataFrame([data])
 
 
-# ============================================================
+
 # Base signal generation
-# ============================================================
+
 
 def compute_base_signals(input_df: pd.DataFrame) -> dict:
     """
@@ -195,9 +185,9 @@ def compute_base_signals(input_df: pd.DataFrame) -> dict:
 
     models = load_models()
 
-    # ---------------------------
+    
     # XGBoost
-    # ---------------------------
+    
     X_xgb = input_df[models["xgb_features"]].values
     xgb_proba = float(
         models["xgb"].predict_proba(
@@ -207,16 +197,16 @@ def compute_base_signals(input_df: pd.DataFrame) -> dict:
     )
 
 
-    # ---------------------------
+    
     # IsolationForest
     # Higher = more anomalous
-    # ---------------------------
+    
     X_if = input_df[models["iforest_features"]].values
     anomaly_score = float(-models["iforest"].decision_function(X_if)[0])
 
-    # ---------------------------
+    
     # Autoencoder reconstruction error
-    # ---------------------------
+    
     X_ae = input_df[models["ae_features"]].values.astype(np.float32)
     X_ae = torch.from_numpy(X_ae)
 
@@ -236,19 +226,18 @@ def build_meta_features(input_dict: dict) -> np.ndarray:
     Build the exact meta-feature vector expected by the stacker.
     Returns: np.ndarray of shape (1, n_meta_features)
     """
-    # --------------------------------------------------
+    
     # 1. Validate full engineered input
-    # --------------------------------------------------
+    
     df = validate_input(input_dict)
 
-    # --------------------------------------------------
+    
     # 2. Compute base model signals
-    # --------------------------------------------------
+    
     base_signals = compute_base_signals(df)
 
-    # --------------------------------------------------
     # 3. Assemble meta-feature dict
-    # --------------------------------------------------
+   
     meta_row = {}
 
     # base signals
@@ -266,9 +255,9 @@ def build_meta_features(input_dict: dict) -> np.ndarray:
     meta_row["account_txn_count"] = float(df.iloc[0]["account_txn_count"])
     meta_row["last_5_mean_amount"] = float(df.iloc[0]["last_5_mean_amount"])
 
-    # --------------------------------------------------
-    # 4. Order features EXACTLY as stacker expects
-    # --------------------------------------------------
+   
+    # Order features EXACTLY as stacker expects
+    
     models = load_models()
     meta_features = models["meta_features"]
 
