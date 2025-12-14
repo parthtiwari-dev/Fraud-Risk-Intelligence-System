@@ -13,3 +13,4 @@ pydantic
 joblib
 streamlit
 python-multipart
+torch
