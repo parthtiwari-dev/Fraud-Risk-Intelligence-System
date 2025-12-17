@@ -49,9 +49,6 @@
     "merchant_id_missing",
     "device_type_missing",
     "geo_bucket_missing",
-    "account_age_days_missing",
-    "anomaly_score",
-    "is_anomaly",
-    "cluster_id"
+    "account_age_days_missing"
   ]
 }
