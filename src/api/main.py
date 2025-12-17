@@ -1,71 +1,41 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import Dict, Any
+from contextlib import asynccontextmanager
 
-from src.models import load_models
+from src.models import load_models, predict
 from src.explain import load_explainer, explain_transaction
+from src.api.schemas import TransactionInput
+
+MODELS = None
+EXPLAINER = None
 
 
-# -------------------------------
-# App initialization
-# -------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global MODELS, EXPLAINER
 
-app = FastAPI(title="FRIS API")
+    MODELS = load_models()
+    EXPLAINER = load_explainer(MODELS["xgb"])
 
+    yield
 
-# -------------------------------
-# Input schema
-# -------------------------------
-
-class TransactionSchema(BaseModel):
-    """
-    Raw transaction input.
-    This must match the input expected by validate_input().
-    """
-    data: Dict[str, Any]
-
-    def to_dict(self):
-        return self.data
+    # cleanup would go here if needed
 
 
-# -------------------------------
-# Startup: load models ONCE
-# -------------------------------
-
-@app.on_event("startup")
-def load_artifacts():
-    models = load_models()
-    explainer = load_explainer(models["xgb"])
-
-    app.state.models = models
-    app.state.explainer = explainer
+app = FastAPI(lifespan=lifespan)
 
 
-# -------------------------------
-# Prediction + Explainability
-# -------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 
 @app.post("/predict")
-def predict(input: TransactionSchema):
-    models = app.state.models
-    explainer = app.state.explainer
+def predict_endpoint(input: TransactionInput):
+    raw_input = input.model_dump()
+    return predict(raw_input)
 
-    # Raw input dict
-    input_dict = input.to_dict()
 
-    # Prediction
-    score, label = models["predict"](input_dict)
-
-    # Explainability
-    top_features = explain_transaction(
-        input_dict,
-        models,
-        explainer,
-        k=5
-    )
-
-    return {
-        "score": float(score),
-        "label": int(label),
-        "top_features": top_features
-    }
+@app.post("/explain")
+def explain_endpoint(input: TransactionInput):
+    raw_input = input.model_dump()
+    return explain_transaction(raw_input, MODELS, EXPLAINER)
