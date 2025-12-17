@@ -49,11 +49,13 @@ print("[2] Generating features using training pipeline...")
 import joblib
 preprocessors = joblib.load(PREPROCESSORS_PATH)
 
+
 df_train_features, _ = feature_pipeline(
     pd.DataFrame([raw_row]),
     fit=False,
     preprocessors=preprocessors
 )
+
 
 # ---------------------------------------------------------------------
 # INFERENCE-TIME FEATURE GENERATION

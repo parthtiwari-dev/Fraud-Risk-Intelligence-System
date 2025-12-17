@@ -35,10 +35,8 @@ def add_timestamp_features(df):
 def add_amount_features(df, scaler=None):
     df = df.copy()
 
-    # Log transform
     df["amount_log"] = np.log1p(df["Amount"])
 
-    # Scaling
     if scaler is None:
         scaler = RobustScaler()
         df["amount_scaled"] = scaler.fit_transform(df[["Amount"]])
@@ -46,6 +44,7 @@ def add_amount_features(df, scaler=None):
         df["amount_scaled"] = scaler.transform(df[["Amount"]])
 
     return df, scaler
+
 
 
 def augment_synthetic_categories(df, seed=42):
@@ -60,41 +59,32 @@ def augment_synthetic_categories(df, seed=42):
         account_age_days
     """
     df = df.copy()
-    rng = np.random.default_rng(seed)
 
-    n = len(df)
+    def seeded_rng(idx):
+        return np.random.default_rng(seed + int(idx))
 
-    # merchant_id
+    df["merchant_id"] = df.index.map(
+        lambda i: seeded_rng(i).integers(0, 1000)
+    )
 
-    n_merchants = 1000
-    merchant_weights = rng.exponential(scale=1.0, size=n_merchants)
-    merchant_weights = merchant_weights / merchant_weights.sum()
-    df["merchant_id"] = rng.choice(n_merchants, size=n, p=merchant_weights)
-    
-    
-    # device_type
-    
     device_types = ["mobile", "desktop", "pos", "tablet"]
     device_probs = [0.60, 0.25, 0.10, 0.05]
-    df["device_type"] = rng.choice(device_types, size=n, p=device_probs)
 
-    # geo_bucket
-    
-    n_geo = 50
-    geo_weights = rng.exponential(scale=1.0, size=n_geo)
-    geo_weights = geo_weights / geo_weights.sum()
-    df["geo_bucket"] = rng.choice(n_geo, size=n, p=geo_weights)
+    df["device_type"] = df.index.map(
+        lambda i: seeded_rng(i).choice(device_types, p=device_probs)
+    )
 
-    # account_id
-    n_accounts = 10000
-    acct_weights = rng.exponential(scale=1.0, size=n_accounts)
-    acct_weights = acct_weights / acct_weights.sum()
-    df["account_id"] = rng.choice(n_accounts, size=n, p=acct_weights)
-    
-    # account_age_days
+    df["geo_bucket"] = df.index.map(
+        lambda i: seeded_rng(i).integers(0, 50)
+    )
 
-    account_ages = rng.integers(0, 2000, size=n_accounts)
-    df["account_age_days"] = account_ages[df["account_id"]]
+    df["account_id"] = df.index.map(
+        lambda i: seeded_rng(i).integers(0, 10000)
+    )
+
+    df["account_age_days"] = df["account_id"].map(
+        lambda x: (x * 37) % 2000
+    )
 
     return df
 
@@ -226,7 +216,9 @@ def apply_pca(df, pca=None):
     df = df.copy()
 
     # Select numeric features only
-    num_df = df.select_dtypes(include=["float64", "int64", "int32"])
+    num_df = df.drop(columns=["Class"], errors="ignore") \
+           .select_dtypes(include=["float64", "int64", "int32"])
+
 
     if pca is None:
         pca = PCA(n_components=2)
@@ -252,6 +244,8 @@ def feature_pipeline(df, fit=True, preprocessors=None, seed=42):
         df_final, preprocessors_dict
     """
     df = df.copy()
+    df = df.drop(columns=["Class"], errors="ignore")
+
 
     if fit:
         preprocessors = {}
@@ -265,6 +259,8 @@ def feature_pipeline(df, fit=True, preprocessors=None, seed=42):
         preprocessors["scaler"] = scaler
     else:
         df, _ = add_amount_features(df, scaler=preprocessors["scaler"])
+
+
 
     # 3. synthetic categories
     df = augment_synthetic_categories(df, seed=seed)
@@ -288,26 +284,14 @@ def feature_pipeline(df, fit=True, preprocessors=None, seed=42):
     # 8. interaction features
     df = add_interaction_features(df)
 
-    # 9. PCA
-    if fit:
-        df, pca = apply_pca(df)
-        preprocessors["pca"] = pca
-    else:
-        df, _ = apply_pca(df, pca=preprocessors["pca"])
-
     return df, preprocessors
 
 
-
 def save_preprocessors(preprocessors, save_dir="../experiments/models"):
-    """
-    Save scaler, encoders, and PCA objects to disk using joblib.
-    """
     save_path = Path(save_dir)
     save_path.mkdir(parents=True, exist_ok=True)
 
     joblib.dump(preprocessors["scaler"], save_path / "scaler.joblib")
     joblib.dump(preprocessors["encoders"], save_path / "encoders.joblib")
-    joblib.dump(preprocessors["pca"], save_path / "pca.joblib")
 
     print(f"Saved preprocessors to {save_path}")

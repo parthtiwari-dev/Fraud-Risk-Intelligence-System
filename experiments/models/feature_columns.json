@@ -30,7 +30,6 @@
     "V27",
     "V28",
     "Amount",
-    "Class",
     "timestamp",
     "hour",
     "dayofweek",
@@ -55,8 +54,6 @@
     "geo_bucket_fe",
     "account_id_fe",
     "amount_times_age",
-    "is_new_merchant",
-    "pca_x",
-    "pca_y"
+    "is_new_merchant"
   ]
 }

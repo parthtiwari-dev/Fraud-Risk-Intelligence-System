@@ -6,7 +6,8 @@ Computes SHAP values for single transactions using final XGB model.
 import shap
 import pandas as pd
 
-from .models import validate_input
+from .models import prepare_features
+
 
 
 def load_explainer(xgb_model):
@@ -47,17 +48,18 @@ def top_k_features(shap_values, xgb_df, k=5):
 def explain_transaction(input_dict, models, explainer, k=5):
     """
     Explain XGBoost prediction for a single transaction.
+    Must follow EXACT same pipeline as predict().
     """
 
-    # 1️⃣ Build FULL engineered feature DataFrame
-    full_df = validate_input(input_dict)
-    # full_df columns == xgb_features + others
+    # 1. Build engineered features using canonical pipeline
+    df_eng = prepare_features(input_dict)
 
-    # 2️⃣ Slice EXACT XGB features
-    xgb_df = full_df[models["xgb_features"]]
 
-    # 3️⃣ Compute SHAP
+    # 2. Slice EXACT XGB feature list
+    xgb_df = df_eng[models["xgb_features"]]
+
+    # 3. Compute SHAP values
     shap_vals = compute_shap_single(explainer, xgb_df)
 
-    # 4️⃣ Return top-k explanation
+    # 4. Return top-k explanation
     return top_k_features(shap_vals, xgb_df, k)
