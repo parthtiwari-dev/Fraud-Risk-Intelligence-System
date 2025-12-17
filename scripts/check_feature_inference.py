@@ -16,9 +16,9 @@ from pathlib import Path
 from src.features import feature_pipeline
 from src.feature_inference import prepare_features
 
-# ---------------------------------------------------------------------
+ 
 # CONFIG
-# ---------------------------------------------------------------------
+ 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_PATH = BASE_DIR / "data" / "raw" / "creditcard.csv"        # adjust if needed
@@ -26,9 +26,9 @@ PREPROCESSORS_PATH = BASE_DIR / "experiments" / "models" / "preprocessors.joblib
 
 ROW_INDEX = 100   # any valid row index
 
-# ---------------------------------------------------------------------
+ 
 # LOAD RAW TRAINING DATA
-# ---------------------------------------------------------------------
+ 
 
 print("[1] Loading training data...")
 
@@ -38,9 +38,9 @@ raw_row = df_raw.iloc[ROW_INDEX].to_dict()
 
 print(f"Using row index: {ROW_INDEX}")
 
-# ---------------------------------------------------------------------
+ 
 # TRAINING-TIME FEATURE GENERATION
-# ---------------------------------------------------------------------
+ 
 
 print("[2] Generating features using training pipeline...")
 
@@ -57,17 +57,17 @@ df_train_features, _ = feature_pipeline(
 )
 
 
-# ---------------------------------------------------------------------
+ 
 # INFERENCE-TIME FEATURE GENERATION
-# ---------------------------------------------------------------------
+ 
 
 print("[3] Generating features using inference pipeline...")
 
 df_infer_features = prepare_features(raw_row)
 
-# ---------------------------------------------------------------------
+ 
 # COLUMN CHECK
-# ---------------------------------------------------------------------
+ 
 
 print("[4] Checking column equality...")
 
@@ -82,9 +82,9 @@ if train_cols != infer_cols:
 
 print("✅ Columns match")
 
-# ---------------------------------------------------------------------
+ 
 # VALUE CHECK (NUMERIC)
-# ---------------------------------------------------------------------
+ 
 
 print("[5] Checking numeric values...")
 
@@ -116,9 +116,9 @@ for col in train_cols:
 
 print("✅ All feature values match")
 
-# ---------------------------------------------------------------------
+ 
 # FINAL VERDICT
-# ---------------------------------------------------------------------
+ 
 
 print("\n🎯 CHECKPOINT 1 PASSED")
 print("Feature inference is IDENTICAL to training-time feature generation")

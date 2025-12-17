@@ -16,9 +16,9 @@ import joblib
 
 from .features import feature_pipeline
 
-# ---------------------------------------------------------------------
+ 
 # Paths
-# ---------------------------------------------------------------------
+ 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "experiments" / "models"
@@ -27,9 +27,9 @@ PREPROCESSORS_PATH = MODEL_DIR / "preprocessors.joblib"
 FEATURE_COLUMNS_PATH = MODEL_DIR / "feature_columns.json"
 
 
-# ---------------------------------------------------------------------
+ 
 # Helpers
-# ---------------------------------------------------------------------
+ 
 
 def _load_preprocessors():
     """
@@ -59,9 +59,9 @@ def _load_training_feature_columns():
     return set(data["features"])
 
 
-# ---------------------------------------------------------------------
+ 
 # Public API
-# ---------------------------------------------------------------------
+ 
 
 def prepare_features(raw_input: dict) -> pd.DataFrame:
     """
@@ -78,9 +78,9 @@ def prepare_features(raw_input: dict) -> pd.DataFrame:
         Engineered feature DataFrame of shape (1, N).
     """
 
-    # -----------------------------------------------------------------
+     
     # 1. Raw dict -> single-row DataFrame
-    # -----------------------------------------------------------------
+     
 
     if not isinstance(raw_input, dict):
         raise TypeError("raw_input must be a dict")
@@ -90,15 +90,15 @@ def prepare_features(raw_input: dict) -> pd.DataFrame:
     if len(df_raw) != 1:
         raise ValueError("prepare_features supports exactly ONE transaction")
 
-    # -----------------------------------------------------------------
+     
     # 2. Load preprocessors
-    # -----------------------------------------------------------------
+     
 
     preprocessors = _load_preprocessors()
 
-    # -----------------------------------------------------------------
+     
     # 3. Run feature engineering in inference mode
-    # -----------------------------------------------------------------
+     
 
     df_eng, _ = feature_pipeline(
         df_raw,
@@ -106,9 +106,9 @@ def prepare_features(raw_input: dict) -> pd.DataFrame:
         preprocessors=preprocessors
     )
 
-    # -----------------------------------------------------------------
+     
     # 4. Enforce training-time feature contract
-    # -----------------------------------------------------------------
+     
 
     expected_features = _load_training_feature_columns()
     produced_features = set(df_eng.columns)
@@ -122,8 +122,8 @@ def prepare_features(raw_input: dict) -> pd.DataFrame:
             f"Missing: {sorted(missing)} | Extra: {sorted(extra)}"
         )
 
-    # -----------------------------------------------------------------
+     
     # 5. Return engineered DataFrame
-    # -----------------------------------------------------------------
+     
 
     return df_eng

@@ -24,9 +24,8 @@ import torch.nn as nn
 
 from src.feature_inference import prepare_features
 
-# ---------------------------------------------------------------------
 # Paths
-# ---------------------------------------------------------------------
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_DIR = BASE_DIR / "experiments" / "models"
@@ -38,15 +37,11 @@ XGB_FEATURES_PATH = MODEL_DIR / "xgb_features.json"
 IFOREST_FEATURES_PATH = MODEL_DIR / "iforest_features.json"
 AE_FEATURES_PATH = MODEL_DIR / "ae_features.json"
 
-# ---------------------------------------------------------------------
 # Global cache
-# ---------------------------------------------------------------------
 
 _MODELS = None
 
-# ---------------------------------------------------------------------
 # Autoencoder definition (for loading weights)
-# ---------------------------------------------------------------------
 
 class Autoencoder(nn.Module):
     def __init__(self, input_dim):
@@ -76,9 +71,9 @@ class Autoencoder(nn.Module):
         z = self.encoder(x)
         return self.decoder(z)
 
-# ---------------------------------------------------------------------
+ 
 # Helpers
-# ---------------------------------------------------------------------
+ 
 
 def _load_feature_list(path: Path, name: str) -> list:
     if not path.exists():
@@ -92,9 +87,9 @@ def _load_feature_list(path: Path, name: str) -> list:
 
     return data["features"]
 
-# ---------------------------------------------------------------------
+ 
 # Load all frozen artifacts
-# ---------------------------------------------------------------------
+ 
 
 def load_models():
     global _MODELS
@@ -140,9 +135,8 @@ def load_models():
 
     return _MODELS
 
-# ---------------------------------------------------------------------
-# Base signal generation
-# ---------------------------------------------------------------------
+# Base signal generation    
+
 
 def compute_base_signals(df_eng: pd.DataFrame) -> dict:
     if df_eng.shape[0] != 1:
@@ -170,9 +164,9 @@ def compute_base_signals(df_eng: pd.DataFrame) -> dict:
         "ae_recon_error": ae_recon_error,
     }
 
-# ---------------------------------------------------------------------
+ 
 # Meta-feature construction
-# ---------------------------------------------------------------------
+ 
 
 def build_meta_features(df_eng: pd.DataFrame, base_signals: dict) -> np.ndarray:
     models = load_models()
@@ -196,9 +190,9 @@ def build_meta_features(df_eng: pd.DataFrame, base_signals: dict) -> np.ndarray:
     X_meta = np.array([[meta_row[f] for f in meta_features]], dtype=np.float32)
     return X_meta
 
-# ---------------------------------------------------------------------
+ 
 # Final prediction API
-# ---------------------------------------------------------------------
+ 
 
 def predict(raw_input: dict) -> dict:
     models = load_models()
