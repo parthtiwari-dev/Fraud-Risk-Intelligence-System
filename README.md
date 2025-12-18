@@ -1,4 +1,22 @@
 # **FRIS — Fraud Risk Intelligence System**
+A production-grade fraud detection system designed to operate exactly where real-world banks and fintechs need it.
+
+## **Why This Project? (Business Context)**
+Financial institutions face three hard problems in fraud:
+
+1. **Labels are delayed and incomplete** — you can’t rely purely on supervised learning.
+2. **Inference must be deterministic** — regulators don’t accept "notebook logic".
+3. **Every decision must be explainable** — internal audit, compliance, and customers demand clarity.
+
+FRIS is built as the system that would sit **between transaction processing and risk decisioning** in a real bank/fintech:
+
+- ingest a transaction
+- compute engineered signals + model outputs
+- combine supervised + unsupervised signals
+- return a risk score and explanation
+- forward the decision to fraud ops, rule engines, or customer flows
+
+It acts as the **fraud intelligence layer**, not just a classifier.**
 A full-stack, production-oriented fraud detection system. Built end-to-end with deterministic preprocessing, stacked ML inference, SHAP explainability, FastAPI serving, Docker packaging, and a Streamlit UI.
 
 This repository contains the **complete system** exactly as it runs in production.
@@ -6,6 +24,8 @@ This repository contains the **complete system** exactly as it runs in productio
 ---
 
 ## 🚀 **Live Demo**
+Below is the live version of the exact system described:
+**
 **Backend (FastAPI):** https://fraud-risk-intelligence-system-api.onrender.com/
 
 **Frontend (Streamlit):** https://fraud-risk-intelligence-system.streamlit.app/
@@ -13,6 +33,19 @@ This repository contains the **complete system** exactly as it runs in productio
 ---
 
 ## 🧱 **System Architecture**
+
+### High-Level Architecture Diagram
+![System Architecture](assets/system_architecture.png)
+
+### API Sequence Diagram
+![API Flow](assets/api_sequence.png)
+
+### Streamlit UI Screenshot
+![UI Screenshot](assets/ui_screenshot.png)
+
+---
+
+Below is the text-form pipeline diagram:**
 ```
 Raw Transaction (JSON)
         ↓
@@ -41,7 +74,21 @@ FastAPI → Streamlit UI
 
 ---
 
-## 🔍 **Key Features**
+## 🔍 **Tech Highlights**
+These are the core engineering skills demonstrated by FRIS:
+
+- **training/inference parity** (deterministic, frozen preprocessing)
+- **stacked ensembles** with OOF predictions
+- **SHAP explainability at inference** (no notebook drift)
+- **FastAPI backend** with lifecycle-safe loading
+- **Dockerized deployment** for reproducibility
+- **CI-ready repository structure** with tests
+- **strict schema validation** and boundary contracts
+- **Streamlit frontend** correctly separated from ML logic
+
+---
+
+## 🔍 **Key Features****
 ### **1. Deterministic Feature Engineering**
 All preprocessing is frozen:
 - numerical transforms
@@ -198,3 +245,4 @@ This is a **complete ML system**.
 **FRIS v1.0 — Complete, deployed, stable.**
 
 ---
+
