@@ -182,6 +182,8 @@ FRIS/
 │
 ├── tests/                 # API + inference tests
 │
+├── docs
+├── notebooks
 ├── Dockerfile
 ├── requirements.txt
 └── README.md
