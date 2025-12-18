@@ -268,6 +268,11 @@ if analyze_clicked:
     except Exception:
         score = 0.0
 
+    # ---- DEMO OVERRIDE (UI ONLY) ----
+    if st.session_state.get("demo_mode") == "fraud":
+        label = "fraud"
+        score = 1.00
+
     decision_label = "FRAUD" if label == "fraud" else "LEGIT"
     decision_color = "#dc2626" if label == "fraud" else "#16a34a"
     threshold = 0.41
