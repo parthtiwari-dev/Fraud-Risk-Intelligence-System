@@ -16,3 +16,4 @@ python-multipart
 torch
 pytest
 httpx
+-r app/req.txt
