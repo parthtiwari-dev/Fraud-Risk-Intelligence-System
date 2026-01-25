@@ -16,4 +16,9 @@ python-multipart
 torch
 pytest
 httpx
--r app/req.txt
+
+streamlit==1.31.0
+altair==4.2.2
+pandas==2.2.2
+requests==2.32.3
+
